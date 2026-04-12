@@ -84,7 +84,7 @@ export default function DashboardPage() {
                   {byStatus(status.key).map(job => {
                     const grade = getGrade(job); const score = getScore(job)
                     return (
-                      <div key={job.id} draggable onDragStart={() => setDragging(job.id)} onDragEnd={() => setDragging(null)} style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'10px', padding:'12px', cursor:'grab' }}>
+                      <div key={job.id} draggable onDragStart={() => setDragging(job.id)} onDragEnd={() => setDragging(null)} onClick={() => router.push('/job/' + job.id)} style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'10px', padding:'12px', cursor:'pointer' }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'8px' }}>
                           <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ fontWeight:600, color:'var(--white)', fontSize:'0.85rem', marginBottom:'2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{job.role||'Unknown Role'}</div>
