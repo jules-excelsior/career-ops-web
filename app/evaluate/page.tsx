@@ -11,15 +11,22 @@ export default function EvaluatePage() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState('')
-  useEffect(() => { supabase.auth.getUser().then(({ data }) => { if (!data.user) router.push('/login') }) }, [])
+  const [userId, setUserId] = useState<string|null>(null)
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) { router.push('/login'); return }
+      setUserId(data.user.id)
+    })
+  }, [])
   const handleEvaluate = async () => {
     if (!jdText.trim() || jdText.length < 50) { setError('Please paste a complete job description (at least 50 characters).'); return }
+    if (!userId) { setError('Not logged in. Please refresh.'); return }
     setLoading(true); setError(''); setResult(null)
     try {
-      const jobRes = await fetch('/api/jobs', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ company:'Evaluating…', role:'Evaluating…', jd_text:jdText, status:'saved' }) })
+      const jobRes = await fetch('/api/jobs', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ company:'Evaluating…', role:'Evaluating…', jd_text:jdText, status:'saved', user_id:userId }) })
       const jobData = await jobRes.json()
-      if (!jobData.job) { setError('Failed to create job record.'); setLoading(false); return }
-      const evalRes = await fetch('/api/evaluate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ jd_text:jdText, job_id:jobData.job.id }) })
+      if (!jobData.job) { setError(jobData.error || 'Failed to create job record.'); setLoading(false); return }
+      const evalRes = await fetch('/api/evaluate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ jd_text:jdText, job_id:jobData.job.id, user_id:userId }) })
       const evalData = await evalRes.json()
       if (evalData.error) { setError(evalData.error); setLoading(false); return }
       setResult({ ...evalData.parsed, job_id:jobData.job.id })
@@ -41,7 +48,7 @@ export default function EvaluatePage() {
         {!result && (
           <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'16px', padding:'28px' }}>
             <label style={{ display:'block', fontSize:'0.72rem', fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'var(--muted)', marginBottom:'10px' }}>Job Description</label>
-            <textarea value={jdText} onChange={e => setJdText(e.target.value)} placeholder="Paste the full job description here — include role title, company, responsibilities, requirements, and compensation if available." rows={14} style={{ resize:'vertical', lineHeight:1.75 }} />
+            <textarea value={jdText} onChange={e => setJdText(e.target.value)} placeholder="Paste the full job description here..." rows={14} style={{ resize:'vertical', lineHeight:1.75 }} />
             <div style={{ display:'flex', justifyContent:'space-between', marginTop:'6px', marginBottom:'18px' }}>
               <span style={{ fontSize:'0.72rem', color:'var(--muted)', fontFamily:'DM Mono,monospace' }}>{jdText.length} chars</span>
               <span style={{ fontSize:'0.72rem', color:'var(--muted)' }}>Min 50 characters</span>
