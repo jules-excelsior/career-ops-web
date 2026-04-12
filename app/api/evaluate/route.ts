@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
+        max_tokens: 2000,
         system: `You are a senior HR consultant evaluating job offers. You MUST return ONLY a valid JSON object. No text before or after. No markdown. No backticks. Just the raw JSON object starting with { and ending with }.
 
 Use this exact structure:
