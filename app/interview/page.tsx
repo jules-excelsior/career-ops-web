@@ -12,14 +12,16 @@ function InterviewContent() {
   const [token, setToken] = useState('')
   const [userId, setUserId] = useState('')
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([])
-  const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [started, setStarted] = useState(false)
   const [listening, setListening] = useState(false)
+  const [speaking, setSpeaking] = useState(false)
   const [voiceSupported, setVoiceSupported] = useState(false)
-  const [voiceMode, setVoiceMode] = useState(true)
+  const [showText, setShowText] = useState(false)
+  const [input, setInput] = useState('')
   const chatRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
+  const listeningTimeout = useRef<any>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -32,42 +34,79 @@ function InterviewContent() {
     if (SpeechRecognition) {
       const r = new SpeechRecognition()
       r.continuous = false
-      r.interimResults = false
+      r.interimResults = true
       r.lang = 'en-US'
       r.onresult = (e: any) => {
-        const text = e.results[0][0].transcript
-        setInput(text)
-        setListening(false)
-        setTimeout(() => sendAnswer(text), 300)
+        let final = ''
+        let interim = ''
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) final += e.results[i][0].transcript
+          else interim += e.results[i][0].transcript
+        }
+        if (final) {
+          setInput(final)
+          setListening(false)
+          clearTimeout(listeningTimeout.current)
+          setTimeout(() => handleAnswer(final), 200)
+        } else if (interim) {
+          setInput(interim)
+        }
       }
-      r.onerror = () => setListening(false)
-      r.onend = () => setListening(false)
+      r.onerror = () => { setListening(false); clearTimeout(listeningTimeout.current) }
+      r.onend = () => {
+        if (listeningTimeout.current) {
+          setListening(true)
+          try { r.start() } catch {}
+        }
+      }
       recognitionRef.current = r
     }
   }, [])
 
   useEffect(() => { chatRef.current?.scrollTo(0, chatRef.current.scrollHeight) }, [messages])
 
-  const speak = useCallback((text: string) => {
-    if (!('speechSynthesis' in window)) return
-    window.speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(text)
-    u.rate = 0.95
-    u.pitch = 1
-    u.volume = 1
-    u.lang = 'en-US'
-    const voices = window.speechSynthesis.getVoices()
-    const female = voices.find(v => v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Google UK English Female'))
-    if (female) u.voice = female
-    window.speechSynthesis.speak(u)
+  const speak = useCallback((text: string): Promise<void> => {
+    return new Promise((resolve) => {
+      if (!('speechSynthesis' in window)) { resolve(); return }
+      window.speechSynthesis.cancel()
+      const clean = text
+      const u = new SpeechSynthesisUtterance(clean)
+      u.rate = 0.9
+      u.pitch = 1
+      u.volume = 1
+      u.lang = 'en-US'
+      const voices = window.speechSynthesis.getVoices()
+      const voice = voices.find(v => v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Google'))
+      if (voice) u.voice = voice
+      u.onend = () => { setSpeaking(false); resolve() }
+      u.onerror = () => { setSpeaking(false); resolve() }
+      setSpeaking(true)
+      window.speechSynthesis.speak(u)
+    })
   }, [])
+
+  const startListening = () => {
+    if (!recognitionRef.current) return
+    setListening(true)
+    setInput('')
+    listeningTimeout.current = setTimeout(() => {
+      setListening(false)
+      if (recognitionRef.current) try { recognitionRef.current.stop() } catch {}
+    }, 15000)
+    try { recognitionRef.current.start() } catch {}
+  }
+
+  const stopListening = () => {
+    setListening(false)
+    clearTimeout(listeningTimeout.current)
+    if (recognitionRef.current) try { recognitionRef.current.stop() } catch {}
+  }
 
   const startInterview = async () => {
     setLoading(true)
     try {
       const res = await fetch('/api/interview', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+        method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
         body:JSON.stringify({ job_id:jobId, user_id:userId, action:'start', messages:[] })
       })
       const d = await res.json()
@@ -75,35 +114,27 @@ function InterviewContent() {
       const reply = d.reply
       setMessages([{ role:'assistant', content: reply }])
       setStarted(true)
-      if (voiceMode) speak(stripFeedback(reply))
+      await speak(reply)
+      setTimeout(() => startListening(), 600)
     } catch {} finally { setLoading(false) }
   }
 
-  const sendAnswer = async (text?: string) => {
-    const answer = text || input
-    if (!answer.trim()) return
-    const newMessages = [...messages, { role:'user', content: answer }]
+  const handleAnswer = async (text: string) => {
+    if (!text.trim()) return
+    const newMessages = [...messages, { role:'user', content: text }]
     setMessages(newMessages); setInput(''); setLoading(true)
     try {
       const res = await fetch('/api/interview', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+        method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
         body:JSON.stringify({ job_id:jobId, user_id:userId, action:'continue', messages:newMessages })
       })
       const d = await res.json()
       if (d.error) return
       const reply = d.reply
       setMessages([...newMessages, { role:'assistant', content: reply }])
-      if (voiceMode) speak(stripFeedback(reply))
+      await speak(reply)
+      setTimeout(() => startListening(), 600)
     } catch {} finally { setLoading(false) }
-  }
-
-  const toggleListening = () => {
-    if (listening) { recognitionRef.current?.stop(); setListening(false); return }
-    if (!recognitionRef.current) return
-    setListening(true)
-    setInput('')
-    recognitionRef.current.start()
   }
 
   return (
@@ -111,105 +142,110 @@ function InterviewContent() {
       <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, height:'56px', background:'rgba(8,12,24,0.95)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', backdropFilter:'blur(12px)' }}>
         <Logo />
         <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
-          {started && voiceSupported && (
-            <button onClick={() => setVoiceMode(!voiceMode)} style={{ padding:'6px 12px', background:voiceMode?'rgba(34,211,168,0.1)':'rgba(255,255,255,0.04)', border:`1px solid ${voiceMode?'rgba(34,211,168,0.3)':'var(--border)'}`, borderRadius:'8px', color:voiceMode?'var(--success)':'var(--muted)', fontSize:'0.78rem', cursor:'pointer', fontFamily:'inherit' }}>
-              {voiceMode ? '🔊 Voice On' : '🔇 Voice Off'}
+          {started && (
+            <button onClick={() => setShowText(!showText)} style={{ padding:'6px 12px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px', color:'var(--muted)', fontSize:'0.78rem', cursor:'pointer', fontFamily:'inherit' }}>
+              {showText ? 'Hide Transcript' : 'Show Transcript'}
             </button>
           )}
           <button onClick={() => router.push('/dashboard')} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', borderRadius:'8px', color:'var(--muted)', fontSize:'0.82rem' }}>Dashboard</button>
         </div>
       </nav>
 
-      <main style={{ paddingTop:'80px', maxWidth:'740px', margin:'0 auto', padding:'80px 24px 60px' }}>
-        <div style={{ marginBottom:'32px' }}>
-          <div style={{ fontSize:'0.68rem', fontWeight:700, letterSpacing:'3px', textTransform:'uppercase', color:'var(--success)', fontFamily:'DM Mono,monospace', marginBottom:'10px' }}>Interview Simulator</div>
-          <h1 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'clamp(1.6rem,3vw,2rem)', fontWeight:700, color:'var(--white)', marginBottom:'8px' }}>Voice Interview Practice</h1>
-          <p style={{ color:'var(--muted)', fontSize:'0.88rem' }}>{voiceSupported ? 'Speak your answers naturally — the AI listens and responds. Or type if you prefer.' : 'Type your answers — your browser does not support voice input.'}</p>
-        </div>
-
+      <main style={{ paddingTop:'80px', maxWidth:'740px', margin:'0 auto', padding:'80px 24px 60px', display:'flex', flexDirection:'column', alignItems:'center' }}>
         {!started ? (
-          <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'16px', padding:'40px', textAlign:'center' }}>
-            <div style={{ fontSize:'3rem', marginBottom:'16px' }}>🎤</div>
-            <h2 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.3rem', color:'var(--white)', marginBottom:'10px' }}>Ready to practice?</h2>
-            <p style={{ color:'var(--muted)', fontSize:'0.85rem', marginBottom:'24px', lineHeight:1.7 }}>
-              {voiceSupported ? 'The AI will ask you 5 questions aloud. Speak your answers — like a real interview.' : 'The AI will ask you 5 role-specific questions. Type your answers and get feedback.'}
+          <div style={{ width:'100%', maxWidth:'520px', background:'var(--card)', border:'1px solid var(--border)', borderRadius:'20px', padding:'48px 36px', textAlign:'center', marginTop:'60px' }}>
+            <div style={{ fontSize:'4rem', marginBottom:'20px', lineHeight:1 }}>🎤</div>
+            <h2 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.4rem', color:'var(--white)', marginBottom:'10px' }}>Voice Interview Practice</h2>
+            <p style={{ color:'var(--muted)', fontSize:'0.88rem', marginBottom:'28px', lineHeight:1.7 }}>
+              {voiceSupported
+                ? 'The AI interviewer will ask you questions aloud. Speak your answers — just like a real interview. No typing required.'
+                : 'Your browser doesn\'t support voice. Use Chrome or Edge for the full voice experience.'}
             </p>
-            <button onClick={startInterview} disabled={loading || !jobId} style={{ padding:'14px 32px', background:'var(--success)', color:'#000', border:'none', borderRadius:'10px', fontSize:'0.95rem', fontWeight:700, cursor:loading?'wait':'pointer' }}>
-              {loading ? 'Starting…' : 'Start Interview →'}
+            <button onClick={startInterview} disabled={loading || !jobId} style={{ width:'100%', padding:'16px', background:'var(--success)', color:'#000', border:'none', borderRadius:'12px', fontSize:'1.05rem', fontWeight:700, cursor:loading?'wait':'pointer' }}>
+              {loading ? 'Starting…' : 'Start Voice Interview'}
             </button>
-            {!jobId && <p style={{ marginTop:'12px', color:'var(--danger)', fontSize:'0.8rem' }}>Select a job from your pipeline first.</p>}
+            {!jobId && <p style={{ marginTop:'14px', color:'var(--danger)', fontSize:'0.8rem' }}>Select a job from your pipeline first.</p>}
           </div>
         ) : (
-          <div>
-            <div ref={chatRef} style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'16px', padding:'24px', marginBottom:'16px', maxHeight:'55vh', overflowY:'auto', display:'flex', flexDirection:'column', gap:'14px' }}>
-              {messages.map((m, i) => (
-                <div key={i} style={{ display:'flex', justifyContent:m.role==='user'?'flex-end':'flex-start' }}>
-                  <div style={{
-                    maxWidth:'80%', padding:'14px 18px', borderRadius:'14px',
-                    background: m.role==='user' ? 'var(--accent)' : 'rgba(255,255,255,0.06)',
-                    color: m.role==='user' ? '#000' : 'var(--text)',
-                    fontSize:'0.88rem', lineHeight:1.7, whiteSpace:'pre-wrap',
-                    borderBottomRightRadius: m.role==='user' ? '4px' : '14px',
-                    borderBottomLeftRadius: m.role==='assistant' ? '4px' : '14px',
-                  }}>
-                    <div style={{ fontSize:'0.65rem', fontWeight:700, letterSpacing:'1px', textTransform:'uppercase', marginBottom:'4px', color: m.role==='user' ? 'rgba(0,0,0,0.5)' : 'var(--accent)', fontFamily:'DM Mono,monospace' }}>
-                      {m.role==='assistant' ? '🤖 Interviewer' : '🎤 You'}
+          <>
+            {/* Voice-first UI */}
+            <div style={{ width:'100%', maxWidth:'520px', textAlign:'center', marginTop:'40px', marginBottom:'30px' }}>
+              <div style={{ marginBottom:'24px' }}>
+                {speaking ? (
+                  <div style={{ padding:'20px', background:'rgba(34,211,168,0.06)', border:'1px solid rgba(34,211,168,0.2)', borderRadius:'16px' }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'10px', marginBottom:'10px' }}>
+                      <span style={{ width:'12px', height:'12px', borderRadius:'50%', background:'var(--success)', animation:'fadeIn 0.5s ease infinite alternate' }} />
+                      <span style={{ fontSize:'0.9rem', color:'var(--success)', fontWeight:600 }}>Interviewer is speaking…</span>
                     </div>
-                    {m.content}
+                    <p style={{ fontSize:'0.82rem', color:'var(--muted)' }}>Listen carefully, then answer when prompted</p>
                   </div>
-                </div>
-              ))}
-              {loading && <div style={{ color:'var(--muted)', fontSize:'0.82rem', textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px' }}>
-                <span style={{ display:'inline-block', width:'8px', height:'8px', borderRadius:'50%', background:'var(--accent)', animation:'fadeIn 0.6s ease infinite alternate' }} />
-                Thinking…
-              </div>}
-            </div>
-            <div style={{ display:'flex', gap:'10px' }}>
-              {voiceSupported && (
-                <button
-                  onClick={toggleListening}
-                  disabled={loading}
-                  style={{
-                    padding:'12px 18px', minWidth:'48px',
-                    background: listening ? 'rgba(255,82,82,0.15)' : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${listening ? 'rgba(255,82,82,0.4)' : 'var(--border)'}`,
-                    borderRadius:'10px', color: listening ? 'var(--danger)' : 'var(--muted)',
-                    fontSize:'1.2rem', cursor: loading?'wait':'pointer',
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                    transition:'all 0.15s',
-                  }}
-                  title={listening ? 'Stop listening' : 'Speak your answer'}
-                >
-                  {listening ? '⏹' : '🎤'}
-                </button>
-              )}
-              <input
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key==='Enter' && sendAnswer()}
-                placeholder={listening ? 'Listening… speak now' : voiceMode ? 'Type or tap 🎤 to speak…' : 'Type your answer…'}
-                disabled={loading}
-                style={{ flex:1 }}
-              />
-              <button onClick={() => sendAnswer()} disabled={loading || !input.trim()} style={{ padding:'12px 24px', background:'var(--success)', color:'#000', border:'none', borderRadius:'10px', fontWeight:700, cursor:loading?'wait':'pointer', whiteSpace:'nowrap' }}>
-                {loading ? '…' : 'Send →'}
+                ) : listening ? (
+                  <div style={{ padding:'20px', background:'rgba(255,82,82,0.06)', border:'1px solid rgba(255,82,82,0.2)', borderRadius:'16px' }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'10px', marginBottom:'10px' }}>
+                      <span style={{ width:'12px', height:'12px', borderRadius:'50%', background:'var(--danger)', animation:'fadeIn 0.3s ease infinite alternate' }} />
+                      <span style={{ fontSize:'0.9rem', color:'var(--danger)', fontWeight:600 }}>Listening… speak your answer</span>
+                    </div>
+                    {input && <p style={{ fontSize:'0.82rem', color:'var(--muted)', fontStyle:'italic' }}>"{input}"</p>}
+                  </div>
+                ) : loading ? (
+                  <div style={{ padding:'20px', background:'rgba(0,194,255,0.06)', border:'1px solid rgba(0,194,255,0.2)', borderRadius:'16px' }}>
+                    <span style={{ fontSize:'0.85rem', color:'var(--accent)' }}>Processing…</span>
+                  </div>
+                ) : (
+                  <div style={{ padding:'20px', background:'rgba(255,255,255,0.02)', border:'1px solid var(--border)', borderRadius:'16px' }}>
+                    <span style={{ fontSize:'0.85rem', color:'var(--muted)' }}>Tap the mic to answer</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Mic button */}
+              <button
+                onClick={listening ? stopListening : startListening}
+                disabled={speaking || loading}
+                style={{
+                  width:'96px', height:'96px', borderRadius:'50%',
+                  background: listening ? 'rgba(255,82,82,0.15)' : speaking ? 'rgba(34,211,168,0.1)' : 'rgba(0,194,255,0.1)',
+                  border: `3px solid ${listening ? 'rgba(255,82,82,0.5)' : speaking ? 'rgba(34,211,168,0.4)' : 'rgba(0,194,255,0.3)'}`,
+                  cursor: (speaking || loading) ? 'default' : 'pointer',
+                  fontSize:'2rem',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  transition:'all 0.2s',
+                  margin:'0 auto',
+                }}
+              >
+                {listening ? '⏹' : speaking ? '🔊' : '🎤'}
               </button>
+              <div style={{ marginTop:'14px', fontSize:'0.78rem', color:'var(--muted)' }}>
+                {listening ? 'Tap to stop' : speaking ? 'Interviewer speaking' : 'Tap to speak'}
+              </div>
             </div>
-            {listening && (
-              <div style={{ marginTop:'10px', display:'flex', alignItems:'center', gap:'8px', padding:'10px 14px', background:'rgba(255,82,82,0.06)', border:'1px solid rgba(255,82,82,0.2)', borderRadius:'8px' }}>
-                <span style={{ width:'10px', height:'10px', borderRadius:'50%', background:'var(--danger)', animation:'fadeIn 0.4s ease infinite alternate' }} />
-                <span style={{ fontSize:'0.82rem', color:'var(--danger)' }}>Listening… speak your answer clearly</span>
+
+            {/* Transcript (collapsible) */}
+            {showText && (
+              <div ref={chatRef} style={{ width:'100%', maxWidth:'580px', background:'var(--card)', border:'1px solid var(--border)', borderRadius:'16px', padding:'20px', marginBottom:'16px', maxHeight:'30vh', overflowY:'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
+                <div style={{ fontSize:'0.65rem', fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'var(--muted)', fontFamily:'DM Mono,monospace', textAlign:'center', marginBottom:'6px' }}>Transcript</div>
+                {messages.map((m, i) => (
+                  <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:m.role==='user'?'flex-end':'flex-start' }}>
+                    <div style={{
+                      maxWidth:'85%', padding:'10px 14px', borderRadius:'12px',
+                      background: m.role==='user' ? 'var(--accent)' : 'rgba(255,255,255,0.06)',
+                      color: m.role==='user' ? '#000' : 'var(--text)',
+                      fontSize:'0.82rem', lineHeight:1.6, whiteSpace:'pre-wrap',
+                    }}>
+                      <div style={{ fontSize:'0.6rem', fontWeight:700, letterSpacing:'1px', textTransform:'uppercase', marginBottom:'3px', color: m.role==='user' ? 'rgba(0,0,0,0.5)' : 'var(--accent)', fontFamily:'DM Mono,monospace' }}>
+                        {m.role==='assistant' ? 'Interviewer' : 'You'}
+                      </div>
+                      {m.content}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
-          </div>
+          </>
         )}
       </main>
     </div>
   )
-}
-
-function stripFeedback(text: string): string {
-  return text.replace(/\bScore:?\s*\d+\/?\d*\b/gi, '').replace(/^(Feedback|Summary|Final|Overall).*$/gim, '').trim() || text
 }
 
 export default function InterviewPage() {
