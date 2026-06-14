@@ -33,16 +33,34 @@ export default function DashboardPage() {
     setJobs(data.jobs || []); setLoading(false)
   }, [])
   const updateStatus = async (jobId: string, status: string) => {
+    const previousJobs = jobs
     setJobs(prev => prev.map(j => j.id===jobId ? {...j, status} : j))
-    await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({ id:jobId, status, user_id:userId }) })
+    try {
+      const res = await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({ id:jobId, status, user_id:userId }) })
+      if (!res.ok) { setJobs(previousJobs); return }
+    } catch { setJobs(previousJobs) }
   }
   const deleteJob = async (jobId: string) => {
     if (!confirm('Delete this job?')) return
+    const previousJobs = jobs
     setJobs(prev => prev.filter(j => j.id!==jobId))
-    await fetch('/api/jobs', { method:'DELETE', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({ id:jobId, user_id:userId }) })
+    try {
+      const res = await fetch('/api/jobs', { method:'DELETE', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({ id:jobId, user_id:userId }) })
+      if (!res.ok) { setJobs(previousJobs); return }
+    } catch { setJobs(previousJobs) }
   }
   const signOut = async () => { await supabase.auth.signOut(); router.push('/login') }
+  const CARD_STYLE: React.CSSProperties = {
+    background: 'var(--card)',
+    border: '1px solid var(--border)',
+    borderRadius: '12px',
+    padding: '14px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    position: 'relative',
+  }
   const byStatus = (s: string) => jobs.filter(j => j.status===s)
+
   const getGrade = (job: any) => job.career_evaluations?.[0]?.grade || null
   const getScore = (job: any) => job.career_evaluations?.[0]?.score || null
   if (loading) return <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)' }}><div style={{ color:'var(--muted)' }}>Loading pipeline…</div></div>
@@ -54,6 +72,7 @@ export default function DashboardPage() {
           <div style={{ display:'flex', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px', overflow:'hidden' }}>
             {(['kanban','list'] as const).map(v => <button key={v} onClick={() => setView(v)} style={{ padding:'6px 14px', background:view===v?'rgba(0,194,255,0.15)':'transparent', border:'none', color:view===v?'var(--accent)':'var(--muted)', fontSize:'0.78rem' }}>{v==='kanban'?'⬛ Board':'☰ List'}</button>)}
           </div>
+          <button onClick={() => router.push('/profile')} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'var(--muted)', borderRadius:'8px', fontSize:'0.82rem' }}>Profile</button>
           <button onClick={() => router.push('/evaluate')} style={{ padding:'8px 18px', background:'var(--accent)', color:'#000', border:'none', borderRadius:'8px', fontSize:'0.85rem', fontWeight:700 }}>+ Evaluate Job</button>
           <button onClick={signOut} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'var(--muted)', borderRadius:'8px', fontSize:'0.82rem' }}>Sign Out</button>
         </div>
@@ -64,7 +83,7 @@ export default function DashboardPage() {
           <p style={{ fontSize:'0.82rem', color:'var(--muted)', marginTop:'4px' }}>{jobs.length} total · {byStatus('interview').length} in interview · {byStatus('offer').length} offers</p>
         </div>
         <div style={{ display:'flex', gap:'10px', flexWrap:'wrap', marginBottom:'28px' }}>
-          {STATUSES.map(s => <div key={s.key} style={{ background:s.bg, border:`1px solid ${s.color}33`, borderRadius:'10px', padding:'12px 20px' }}><div style={{ fontSize:'1.4rem', fontWeight:700, color:s.color, fontFamily:'DM Mono,monospace' }}>{byStatus(s.key).length}</div><div style={{ fontSize:'0.72rem', color:'var(--muted)', textTransform:'uppercase', letterSpacing:'1px' }}>{s.label}</div></div>)}
+          {STATUSES.map(s => <div key={s.key} className="stat-card" style={{ background:s.bg, border:`1px solid ${s.color}33`, borderRadius:'10px', padding:'12px 20px' }}><div style={{ fontSize:'1.4rem', fontWeight:700, color:s.color, fontFamily:'DM Mono,monospace' }}>{byStatus(s.key).length}</div><div style={{ fontSize:'0.72rem', color:'var(--muted)', textTransform:'uppercase', letterSpacing:'1px' }}>{s.label}</div></div>)}
         </div>
         {jobs.length===0 && (
           <div style={{ textAlign:'center', padding:'80px 24px', background:'var(--card)', border:'1px solid var(--border)', borderRadius:'16px' }}>
@@ -86,7 +105,7 @@ export default function DashboardPage() {
                   {byStatus(status.key).map(job => {
                     const grade = getGrade(job); const score = getScore(job)
                     return (
-                      <div key={job.id} draggable onDragStart={() => setDragging(job.id)} onDragEnd={() => setDragging(null)} onClick={() => router.push('/job/' + job.id)} style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'10px', padding:'12px', cursor:'pointer' }}>
+                      <div key={job.id} draggable onDragStart={() => setDragging(job.id)} onDragEnd={() => setDragging(null)} onClick={() => router.push('/job/' + job.id)} className="job-card animate-in" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'12px', padding:'14px' }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'8px' }}>
                           <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ fontWeight:600, color:'var(--white)', fontSize:'0.85rem', marginBottom:'2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{job.role||'Unknown Role'}</div>

@@ -14,7 +14,14 @@ async function getSessionUser(req: NextRequest) {
   return user || null
 }
 
-const ALLOWED_UPDATE_FIELDS = new Set(['status', 'notes', 'salary_range', 'location', 'applied_at'])
+const ALLOWED_UPDATE_FIELDS = new Set(['status', 'notes', 'salary_range', 'location', 'company', 'role', 'applied_at', 'interviewed_at', 'offered_at', 'rejected_at'])
+
+const STATUS_TIMESTAMP_MAP: Record<string, string> = {
+  applied: 'applied_at',
+  interview: 'interviewed_at',
+  offer: 'offered_at',
+  rejected: 'rejected_at',
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -68,6 +75,11 @@ export async function PATCH(req: NextRequest) {
     const safeUpdates: Record<string, unknown> = {}
     for (const key of Object.keys(updates)) {
       if (ALLOWED_UPDATE_FIELDS.has(key)) safeUpdates[key] = updates[key]
+    }
+
+    if (updates.status && STATUS_TIMESTAMP_MAP[updates.status]) {
+      const tsField = STATUS_TIMESTAMP_MAP[updates.status]
+      if (!safeUpdates[tsField]) safeUpdates[tsField] = new Date().toISOString()
     }
 
     const { data: job, error } = await supabase

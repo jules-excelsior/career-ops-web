@@ -53,6 +53,9 @@ export default function JobDetailPage() {
       <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, height:'56px', background:'rgba(8,12,24,0.95)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', backdropFilter:'blur(12px)' }}>
         <div style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.3rem', fontWeight:700, color:'var(--white)' }}>Career<span style={{ color:'var(--gold)' }}>Ops</span></div>
         <button onClick={() => router.push('/dashboard')} style={{ padding:'6px 16px', background:'transparent', border:'1px solid var(--border)', color:'var(--muted)', borderRadius:'8px', fontSize:'0.82rem' }}>← Pipeline</button>
+        <div style={{ display:'flex', gap:'8px' }}>
+          <button onClick={() => router.push('/profile')} style={{ padding:'6px 16px', background:'transparent', border:'1px solid var(--border)', color:'var(--muted)', borderRadius:'8px', fontSize:'0.82rem' }}>Profile</button>
+        </div>
       </nav>
 
       <main style={{ paddingTop:'80px', maxWidth:'820px', margin:'0 auto', padding:'80px 24px 60px' }}>

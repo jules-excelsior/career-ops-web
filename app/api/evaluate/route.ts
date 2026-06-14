@@ -52,7 +52,26 @@ export async function POST(req: NextRequest) {
       .single()
     if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
 
+    const { data: profile } = await supabase
+      .from('career_profiles')
+      .select('target_role, industry, years_experience, skills, preferred_location, salary_expectations, resume_text')
+      .eq('user_id', user_id)
+      .single()
+
     const safeJd = sanitizeJdText(jd_text).substring(0, 2000)
+
+    let profileContext = ''
+    if (profile) {
+      const parts: string[] = []
+      if (profile.target_role) parts.push(`Target Role: ${profile.target_role}`)
+      if (profile.industry) parts.push(`Industry Preference: ${profile.industry}`)
+      if (profile.years_experience) parts.push(`Years of Experience: ${profile.years_experience}`)
+      if (profile.skills?.length) parts.push(`Skills: ${profile.skills.join(', ')}`)
+      if (profile.preferred_location) parts.push(`Preferred Location: ${profile.preferred_location}`)
+      if (profile.salary_expectations) parts.push(`Salary Expectations: ${profile.salary_expectations}`)
+      if (profile.resume_text) parts.push(`\n=== CANDIDATE RESUME ===\n${profile.resume_text.substring(0, 3000)}\n=== END RESUME ===`)
+      if (parts.length) profileContext = `\n\n=== CANDIDATE PROFILE ===\n${parts.join('\n')}\n=== END PROFILE ===`
+    }
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 60000)
@@ -67,13 +86,15 @@ export async function POST(req: NextRequest) {
         model: 'deepseek-chat',
         max_tokens: 4000,
         messages: [
-          { role: 'system', content: `You are an HR consultant. Evaluate job descriptions. Return ONLY a JSON object. No text outside the JSON. Keep all string values under 150 characters each.
+          { role: 'system', content: `You are an HR consultant. Evaluate how well a job description matches a candidate based on their profile and resume. Return ONLY a JSON object. No text outside the JSON. Keep all string values under 150 characters each.
 
 JSON structure:
-{"grade":"A","score":4.5,"company":"Name","role":"Title","location":"City or Remote","salary_range":"amount or null","role_summary":"Brief summary under 120 chars","cv_match":"Match analysis under 120 chars","green_flags":"Point 1. Point 2. Point 3.","red_flags":"Concern 1. Concern 2.","compensation":"Brief comp analysis under 120 chars","recommendation":"Clear recommendation under 120 chars"}
+{"grade":"A","score":4.5,"company":"Name","role":"Title","location":"City or Remote","salary_range":"amount or null","role_summary":"Brief summary under 120 chars","cv_match":"Match analysis based on the candidate's actual resume and skills under 120 chars","green_flags":"Point 1. Point 2. Point 3.","red_flags":"Concern 1. Concern 2.","compensation":"Brief comp analysis vs candidate expectations under 120 chars","recommendation":"Clear recommendation under 120 chars"}
 
-Grades: A=4.5-5, B=3.5-4.4, C=2.5-3.4, D=1.5-2.4, F=0-1.4` },
-          { role: 'user', content: `Evaluate this job and return JSON only:\n\n${safeJd}` }
+Grades: A=Excellent match, must apply (4.5-5), B=Good fit, worth pursuing (3.5-4.4), C=Decent, evaluate carefully (2.5-3.4), D=Weak match, significant gaps (1.5-2.4), F=Poor match, avoid (0-1.4)
+
+IMPORTANT: Grade based on actual match between job requirements and candidate profile/resume. If no profile is provided, grade based on job quality alone and note that in cv_match.` },
+          { role: 'user', content: `Evaluate this job for the candidate${profileContext ? '.' : ' (no profile provided — grade based on job quality only).'} Return JSON only:\n\n=== JOB DESCRIPTION ===\n${safeJd}\n=== END JOB DESCRIPTION ===${profileContext}` }
         ],
       }),
       signal: controller.signal,
