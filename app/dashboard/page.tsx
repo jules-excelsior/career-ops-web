@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import Logo from '@/app/components/Logo'
 const STATUSES = [
   { key:'saved', label:'Saved', color:'#4a5a7a', bg:'rgba(74,90,122,0.12)' },
   { key:'applied', label:'Applied', color:'#00C2FF', bg:'rgba(0,194,255,0.08)' },
@@ -67,7 +68,7 @@ export default function DashboardPage() {
   return (
     <div style={{ minHeight:'100vh', background:'var(--bg)' }}>
       <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, height:'56px', background:'rgba(8,12,24,0.95)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', backdropFilter:'blur(12px)' }}>
-        <div style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.3rem', fontWeight:700, color:'var(--white)' }}>Career<span style={{ color:'var(--gold)' }}>Ops</span><span style={{ fontSize:'0.65rem', color:'var(--muted)', fontFamily:'DM Sans,sans-serif', fontWeight:400, marginLeft:'10px' }}>by Excelsior</span></div>
+         <div style={{ display:'flex', alignItems:'center', gap:'4px' }}><Logo /></div>
         <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
           <div style={{ display:'flex', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px', overflow:'hidden' }}>
             {(['kanban','list'] as const).map(v => <button key={v} onClick={() => setView(v)} style={{ padding:'6px 14px', background:view===v?'rgba(0,194,255,0.15)':'transparent', border:'none', color:view===v?'var(--accent)':'var(--muted)', fontSize:'0.78rem' }}>{v==='kanban'?'⬛ Board':'☰ List'}</button>)}

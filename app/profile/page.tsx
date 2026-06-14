@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import Logo from '@/app/components/Logo'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -127,7 +128,7 @@ export default function ProfilePage() {
       {/* Nav */}
       <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, height:'56px', background:'rgba(8,12,24,0.95)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', backdropFilter:'blur(12px)' }}>
         <div style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.3rem', fontWeight:700, color:'var(--white)', cursor:'pointer' }} onClick={() => router.push('/dashboard')}>
-          Career<span style={{ color:'var(--gold)' }}>Ops</span>
+          <div onClick={() => router.push('/dashboard')} style={{ cursor:'pointer' }}><Logo /></div>
         </div>
         <div style={{ display:'flex', gap:'10px' }}>
           <button onClick={() => router.push('/dashboard')} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'var(--muted)', borderRadius:'8px', fontSize:'0.82rem', cursor:'pointer' }}>Pipeline</button>

@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import Logo from '@/app/components/Logo'
 export default function LoginPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -19,13 +20,13 @@ export default function LoginPage() {
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'24px', background:'var(--bg)' }}>
       <div style={{ width:'100%', maxWidth:'420px' }}>
         <div style={{ textAlign:'center', marginBottom:'40px' }}>
-          <div style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'2rem', fontWeight:700, color:'var(--white)', marginBottom:'6px' }}>Career<span style={{ color:'var(--gold)' }}>Ops</span></div>
-          <p style={{ fontSize:'0.85rem', color:'var(--muted)' }}>AI-powered job search system</p>
-          <p style={{ fontSize:'0.78rem', color:'var(--muted)', marginTop:'4px' }}>by Excelsior Consultancy Services</p>
+          <div style={{ marginBottom:'6px' }}><Logo size={42} /></div>
+          <p style={{ fontSize:'0.85rem', color:'var(--muted)' }}>AI-powered job evaluation</p>
+          <p style={{ fontSize:'0.78rem', color:'var(--muted)', marginTop:'4px' }}>Free for all job seekers</p>
         </div>
         <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'16px', padding:'36px' }}>
           <h1 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.6rem', fontWeight:700, color:'var(--white)', marginBottom:'6px' }}>Welcome back</h1>
-          <p style={{ fontSize:'0.83rem', color:'var(--muted)', marginBottom:'28px' }}>Log in with your Business Operations Mastery account</p>
+          <p style={{ fontSize:'0.83rem', color:'var(--muted)', marginBottom:'28px' }}>Sign in to your ResuMatch account</p>
           <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
             <div>
               <label style={{ display:'block', fontSize:'0.72rem', fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase', color:'var(--muted)', marginBottom:'6px' }}>Email</label>
@@ -41,7 +42,7 @@ export default function LoginPage() {
             </button>
           </div>
           <p style={{ marginTop:'24px', fontSize:'0.78rem', color:'var(--muted)', textAlign:'center' }}>
-            No account? <a href="https://excelsiorblueprint.com/signup" target="_blank" rel="noopener noreferrer" style={{ color:'var(--accent)', fontWeight:600 }}>Sign up at excelsiorblueprint.com</a>
+            No account? <a href="https://excelsiorblueprint.com/signup" target="_blank" rel="noopener noreferrer" style={{ color:'var(--accent)', fontWeight:600 }}>Create a free account</a>
           </p>
         </div>
       </div>
