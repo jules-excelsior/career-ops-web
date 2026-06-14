@@ -1,7 +1,8 @@
 -- Run this in Supabase SQL Editor (https://synpcpnstoulaxancsgh.supabase.co)
 -- ============================================================================
 
--- 1. Add timestamp columns to career_jobs
+-- 1. Add columns to career_jobs
+ALTER TABLE career_jobs ADD COLUMN IF NOT EXISTS job_url TEXT;
 ALTER TABLE career_jobs ADD COLUMN IF NOT EXISTS applied_at TIMESTAMPTZ;
 ALTER TABLE career_jobs ADD COLUMN IF NOT EXISTS interviewed_at TIMESTAMPTZ;
 ALTER TABLE career_jobs ADD COLUMN IF NOT EXISTS offered_at TIMESTAMPTZ;

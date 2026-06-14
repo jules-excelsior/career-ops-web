@@ -9,6 +9,7 @@ export default function EvaluatePage() {
   const router = useRouter()
   const supabase = createClient()
   const [jdText, setJdText] = useState('')
+  const [jobUrl, setJobUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState('')
@@ -27,7 +28,7 @@ export default function EvaluatePage() {
     setLoading(true); setError(''); setResult(null)
     try {
       const headers = { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` }
-      const jobRes = await fetch('/api/jobs', { method:'POST', headers, body: JSON.stringify({ company:'Evaluating…', role:'Evaluating…', jd_text:jdText, status:'saved', user_id:userId }) })
+      const jobRes = await fetch('/api/jobs', { method:'POST', headers, body: JSON.stringify({ company:'Evaluating…', role:'Evaluating…', jd_text:jdText, job_url:jobUrl || null, status:'saved', user_id:userId }) })
       const jobData = await jobRes.json()
       if (!jobData.job) { setError(jobData.error || 'Failed to create job record.'); setLoading(false); return }
       const evalRes = await fetch('/api/evaluate', { method:'POST', headers, body: JSON.stringify({ jd_text:jdText, job_id:jobData.job.id, user_id:userId }) })
@@ -50,10 +51,12 @@ export default function EvaluatePage() {
         <div style={{ marginBottom:'32px' }}>
           <div style={{ fontSize:'0.68rem', fontWeight:700, letterSpacing:'3px', textTransform:'uppercase', color:'var(--gold)', fontFamily:'DM Mono,monospace', marginBottom:'10px' }}>AI Job Evaluator</div>
           <h1 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'clamp(1.8rem,4vw,2.6rem)', fontWeight:700, color:'var(--white)', marginBottom:'10px' }}>Evaluate a Job Offer</h1>
-          <p style={{ color:'var(--muted)', fontSize:'0.9rem', lineHeight:1.7 }}>Paste a job description below. Claude will analyze it and give you an A–F grade with a clear recommendation.</p>
+           <p style={{ color:'var(--muted)', fontSize:'0.9rem', lineHeight:1.7 }}>Paste a job description below. AI will analyze it and give you an A–F grade with a clear recommendation.</p>
         </div>
         {!result && (
           <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'16px', padding:'28px' }}>
+            <label style={{ display:'block', fontSize:'0.72rem', fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'var(--muted)', marginBottom:'10px' }}>Job Posting URL (optional)</label>
+            <input value={jobUrl} onChange={e => setJobUrl(e.target.value)} placeholder="https://... (link to the job posting so you can apply later)" style={{ marginBottom:'20px' }} />
             <label style={{ display:'block', fontSize:'0.72rem', fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'var(--muted)', marginBottom:'10px' }}>Job Description</label>
             <textarea value={jdText} onChange={e => setJdText(e.target.value)} placeholder="Paste the full job description here..." rows={14} style={{ resize:'vertical', lineHeight:1.75 }} />
             <div style={{ display:'flex', justifyContent:'space-between', marginTop:'6px', marginBottom:'18px' }}>
@@ -62,9 +65,9 @@ export default function EvaluatePage() {
             </div>
             {error && <div style={{ padding:'12px 16px', background:'rgba(255,82,82,0.08)', border:'1px solid rgba(255,82,82,0.25)', borderRadius:'10px', color:'var(--danger)', fontSize:'0.85rem', marginBottom:'16px' }}>{error}</div>}
             <button onClick={handleEvaluate} disabled={loading} style={{ width:'100%', padding:'14px', background:loading?'rgba(0,194,255,0.3)':'var(--accent)', color:'#000', border:'none', borderRadius:'10px', fontSize:'1rem', fontWeight:700 }}>
-              {loading ? '🤖 Claude is evaluating…' : '🎯 Evaluate with AI →'}
+              {loading ? '🤖 AI is evaluating…' : '🎯 Evaluate with AI →'}
             </button>
-            {loading && <p style={{ textAlign:'center', marginTop:'12px', fontSize:'0.78rem', color:'var(--muted)' }}>Takes 10–20 seconds. Claude is analyzing across 6 dimensions.</p>}
+            {loading && <p style={{ textAlign:'center', marginTop:'12px', fontSize:'0.78rem', color:'var(--muted)' }}>Takes 10–20 seconds. AI is analyzing across 6 dimensions.</p>}
           </div>
         )}
         {result && (

@@ -14,7 +14,7 @@ async function getSessionUser(req: NextRequest) {
   return user || null
 }
 
-const ALLOWED_UPDATE_FIELDS = new Set(['status', 'notes', 'salary_range', 'location', 'company', 'role', 'applied_at', 'interviewed_at', 'offered_at', 'rejected_at'])
+const ALLOWED_UPDATE_FIELDS = new Set(['status', 'notes', 'salary_range', 'location', 'company', 'role', 'job_url', 'applied_at', 'interviewed_at', 'offered_at', 'rejected_at'])
 
 const STATUS_TIMESTAMP_MAP: Record<string, string> = {
   applied: 'applied_at',

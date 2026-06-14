@@ -108,6 +108,28 @@ export default function JobDetailPage() {
           </div>
         )}
 
+        {/* Apply button */}
+        {job.job_url && job.status !== 'rejected' && (
+          <div style={{ marginTop:'16px', marginBottom:'8px' }}>
+            <a
+              href={job.job_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={async (e) => {
+                if (job.status !== 'applied' && job.status !== 'interview' && job.status !== 'offer') {
+                  e.preventDefault()
+                  await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify({ id:job.id, status:'applied', user_id:userId }) })
+                  window.open(job.job_url, '_blank')
+                }
+              }}
+              style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'12px 24px', background:'rgba(0,194,255,0.12)', border:'1px solid rgba(0,194,255,0.3)', borderRadius:'10px', color:'var(--accent)', fontSize:'0.9rem', fontWeight:700, textDecoration:'none' }}
+            >
+              {job.status === 'saved' ? '🚀 Apply Now — Mark as Applied' : job.status === 'applied' ? '🔗 View Job Posting' : job.status === 'interview' ? '🔗 View Job Posting' : '🔗 View Job Posting'}
+            </a>
+            {job.status === 'saved' && <span style={{ display:'block', marginTop:'6px', fontSize:'0.72rem', color:'var(--muted)' }}>Clicking this opens the job posting and automatically marks it as Applied</span>}
+          </div>
+        )}
+
         {/* Action buttons */}
         <div style={{ display:'flex', gap:'10px', flexWrap:'wrap', marginTop:'20px' }}>
           <button onClick={async () => {

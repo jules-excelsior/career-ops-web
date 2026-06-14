@@ -134,7 +134,12 @@ export default function DashboardPage() {
                           <select value={job.status} onChange={e => updateStatus(job.id, e.target.value)} onClick={e => e.stopPropagation()} style={{ fontSize:'0.7rem', padding:'2px 6px', width:'auto', color:status.color, background:'transparent', border:`1px solid ${status.color}44`, borderRadius:'5px' }}>
                             {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                           </select>
-                          <button onClick={() => deleteJob(job.id)} style={{ background:'none', border:'none', color:'rgba(255,82,82,0.5)', fontSize:'0.75rem', padding:'2px 4px' }}>🗑</button>
+                          <div style={{ display:'flex', gap:'4px', alignItems:'center' }}>
+                            {job.job_url && job.status === 'saved' && (
+                              <a href={job.job_url} target="_blank" rel="noopener noreferrer" onClick={e => { e.stopPropagation(); updateStatus(job.id, 'applied') }} title="Apply now — opens job posting and marks as applied" style={{ fontSize:'0.65rem', padding:'3px 8px', background:'rgba(0,194,255,0.12)', border:'1px solid rgba(0,194,255,0.25)', borderRadius:'5px', color:'var(--accent)', fontWeight:600, textDecoration:'none', whiteSpace:'nowrap' }}>Apply →</a>
+                            )}
+                            <button onClick={(e) => { e.stopPropagation(); deleteJob(job.id) }} style={{ background:'none', border:'none', color:'rgba(255,82,82,0.5)', fontSize:'0.75rem', padding:'2px 4px', cursor:'pointer' }}>🗑</button>
+                          </div>
                         </div>
                       </div>
                     )
@@ -157,6 +162,9 @@ export default function DashboardPage() {
                     <div style={{ fontSize:'0.78rem', color:'var(--muted)', marginTop:'2px' }}>{job.company}{job.location?` · ${job.location}`:''}{job.salary_range?` · ${job.salary_range}`:''}</div>
                   </div>
                   <div style={{ display:'flex', alignItems:'center', gap:'10px', flexShrink:0 }}>
+                    {job.job_url && job.status === 'saved' && (
+                      <a href={job.job_url} target="_blank" rel="noopener noreferrer" onClick={e => { e.stopPropagation(); updateStatus(job.id, 'applied') }} style={{ fontSize:'0.72rem', padding:'5px 12px', background:'rgba(0,194,255,0.12)', border:'1px solid rgba(0,194,255,0.25)', borderRadius:'6px', color:'var(--accent)', fontWeight:600, textDecoration:'none', whiteSpace:'nowrap' }}>Apply →</a>
+                    )}
                     {score && <span style={{ fontFamily:'DM Mono,monospace', fontSize:'0.8rem', color:'var(--muted)' }}>{score}/5</span>}
                     <select value={job.status} onChange={e => updateStatus(job.id, e.target.value)} style={{ fontSize:'0.76rem', padding:'4px 10px', width:'auto', color:statusInfo?.color, background:statusInfo?.bg, border:`1px solid ${statusInfo?.color}44`, borderRadius:'6px' }}>
                       {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
