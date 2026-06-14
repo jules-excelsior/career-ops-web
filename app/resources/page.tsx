@@ -9,6 +9,7 @@ const TABS = [
   { key: 'interview', label: 'Interview Prep' },
   { key: 'salary', label: 'Salary & Negotiation' },
   { key: 'news', label: 'Job Market News' },
+  { key: 'training', label: 'Free Training' },
   { key: 'career', label: 'Career Growth' },
 ]
 
@@ -160,6 +161,70 @@ const RESOURCES: Record<string, { tips: string[]; sources: { title: string; url:
       { title: 'Remote Work Report by Buffer', url: 'https://buffer.com/state-of-remote-work', desc: 'Annual survey of remote workers — challenges, benefits, and trends', type: 'Stats' },
       { title: 'Freelancing in America (Upwork)', url: 'https://www.upwork.com/research/freelancing-in-america', desc: 'Annual freelancing study — rates, demographics, industry growth', type: 'Stats' },
       { title: 'PH IT-BPM Industry Roadmap', url: 'https://www.ibpap.org/', desc: 'Philippine IT and business process management industry data and forecasts', type: 'Stats' },
+    ],
+  },
+  training: {
+    tips: [
+      'Set a weekly learning goal — even 3 hours per week compounds to 150+ hours per year.',
+      'Prioritize courses that offer a verifiable certificate — add them to your LinkedIn profile immediately.',
+      'Choose skills that appear in job descriptions you want — align training with market demand.',
+      'Build a portfolio project for every major course — employers value proof over certificates.',
+      'Many platforms offer financial aid for certificates — always apply, approval rates are high.',
+      'TESDA offers completely free assessments and certifications for Filipinos — use this for local credentials.',
+      'Combine free technical training with soft skills — communication and problem-solving differentiate candidates.',
+      'Join course communities on Discord or Reddit — networking while learning multiplies opportunities.',
+    ],
+    sources: [
+      // Global MOOC platforms
+      { title: 'Coursera (Audit Mode)', url: 'https://www.coursera.org/', desc: '7,000+ courses from top universities — audit for free, apply for financial aid for certificates', type: 'MOOC' },
+      { title: 'edX (Audit Track)', url: 'https://www.edx.org/', desc: 'Harvard, MIT, Stanford courses — free audit option on most courses, certificates at cost', type: 'MOOC' },
+      { title: 'Alison', url: 'https://alison.com/', desc: '4,000+ free courses with certificates — business, tech, health, language, trades', type: 'MOOC' },
+      { title: 'Saylor Academy', url: 'https://www.saylor.org/', desc: '100+ free college-level courses with free certificates — business, CS, sciences', type: 'MOOC' },
+      { title: 'OpenLearn (Open University)', url: 'https://www.open.edu/openlearn/', desc: '1,000+ free courses from UK\'s largest university — all levels, free badges', type: 'MOOC' },
+      { title: 'FutureLearn', url: 'https://www.futurelearn.com/', desc: 'Free access to course content for limited time — British Council, universities', type: 'MOOC' },
+      { title: 'Class Central', url: 'https://www.classcentral.com/', desc: 'Search engine for free online courses — aggregates Coursera, edX, FutureLearn, and more', type: 'MOOC' },
+
+      // Tech skills training
+      { title: 'FreeCodeCamp', url: 'https://www.freecodecamp.org/', desc: 'Completely free coding curriculum with 12 certifications — web dev, data science, Python, more', type: 'Tech' },
+      { title: 'The Odin Project', url: 'https://www.theodinproject.com/', desc: 'Full-stack web development curriculum — Ruby, JavaScript, Node.js, completely free', type: 'Tech' },
+      { title: 'CS50 (Harvard)', url: 'https://cs50.harvard.edu/x/', desc: 'Harvard\'s legendary intro to computer science — free, with free certificate option', type: 'Tech' },
+      { title: 'Google Digital Garage', url: 'https://learndigital.withgoogle.com/digitalgarage/', desc: 'Free Google-certified courses — digital marketing, data, AI, career development', type: 'Tech' },
+      { title: 'Microsoft Learn', url: 'https://learn.microsoft.com/en-us/training/', desc: 'Free Microsoft technical training with certifications — Azure, AI, Power Platform, 365', type: 'Tech' },
+      { title: 'IBM SkillsBuild', url: 'https://skillsbuild.org/', desc: 'Free IBM training with digital credentials — AI, cloud, cybersecurity, data science', type: 'Tech' },
+      { title: 'AWS Skill Builder (Free Tier)', url: 'https://explore.skillbuilder.aws/', desc: 'Free AWS cloud training — 600+ courses, some with free digital badges', type: 'Tech' },
+      { title: 'Kaggle Learn', url: 'https://www.kaggle.com/learn', desc: 'Free micro-courses on Python, machine learning, SQL, and data visualization', type: 'Tech' },
+      { title: 'Codecademy (Free Tier)', url: 'https://www.codecademy.com/catalog/free', desc: 'Free interactive coding courses — Python, JavaScript, SQL, HTML/CSS', type: 'Tech' },
+      { title: 'W3Schools', url: 'https://www.w3schools.com/', desc: 'Free tutorials and references for web technologies — certificates available', type: 'Tech' },
+      { title: 'Khan Academy — Computing', url: 'https://www.khanacademy.org/computing', desc: 'Free programming and computer science courses — beginner to AP level', type: 'Tech' },
+      { title: 'GitHub Skills', url: 'https://skills.github.com/', desc: 'Free, interactive courses by GitHub — Git, GitHub Actions, Codespaces', type: 'Tech' },
+
+      // PH-specific free training
+      { title: 'TESDA Online Program (TOP)', url: 'https://e-tesda.gov.ph/', desc: 'FREE technical-vocational courses for Filipinos — 100+ courses with free national assessment', type: 'PH' },
+      { title: 'DICT Digital Skills Training', url: 'https://dict.gov.ph/', desc: 'Free digital literacy and IT training programs by the PH government — nationwide', type: 'PH' },
+      { title: 'DOST-SEI Courses', url: 'https://www.sei.dost.gov.ph/', desc: 'Free science and technology training — scholarships and learning resources', type: 'PH' },
+      { title: 'UP Open University (Free Courses)', url: 'https://www.upou.edu.ph/', desc: 'Free online courses from the University of the Philippines — various disciplines', type: 'PH' },
+      { title: 'TESDA Women\'s Center', url: 'https://www.tesda.gov.ph/GenderAndDevelopment/TWC', desc: 'Free skills training for women — IT, hospitality, automotive, electronics', type: 'PH' },
+      { title: 'DOLE JobStart Philippines', url: 'https://jobstart.dole.gov.ph/', desc: 'Free life skills and technical training for young Filipinos (18-24)', type: 'PH' },
+      { title: 'DICT Tech4ED', url: 'https://tech4ed.dict.gov.ph/', desc: 'Free ICT training centers nationwide — digital literacy for underserved communities', type: 'PH' },
+      { title: 'Bayan Academy', url: 'https://www.bayanacademy.edu.ph/', desc: 'Free entrepreneurship and livelihood training — social enterprise focus', type: 'PH' },
+
+      // Professional certificates (free)
+      { title: 'HubSpot Academy', url: 'https://academy.hubspot.com/', desc: 'Free certifications in marketing, sales, service, and CRM — industry-recognized', type: 'Cert' },
+      { title: 'Google Career Certificates (Scholarship)', url: 'https://grow.google/certificates/', desc: 'Professional certificates in IT support, data analytics, UX, PM — scholarship available', type: 'Cert' },
+      { title: 'Meta Career Programs', url: 'https://www.metacareers.com/careerprograms/', desc: 'Free training in social media marketing, software engineering — certificates available', type: 'Cert' },
+      { title: 'Salesforce Trailhead', url: 'https://trailhead.salesforce.com/', desc: 'Free Salesforce training with certifications — admin, developer, consultant paths', type: 'Cert' },
+      { title: 'Atlassian University (Free Tier)', url: 'https://university.atlassian.com/', desc: 'Free Jira and Confluence training — project management fundamentals', type: 'Cert' },
+
+      // English & communication
+      { title: 'Duolingo', url: 'https://www.duolingo.com/', desc: 'Free language learning — 40+ languages including English, Spanish, Japanese', type: 'Language' },
+      { title: 'BBC Learning English', url: 'https://www.bbc.co.uk/learningenglish/', desc: 'Free English lessons — grammar, vocabulary, pronunciation, business English', type: 'Language' },
+      { title: 'British Council LearnEnglish', url: 'https://learnenglish.britishcouncil.org/', desc: 'Free English resources — reading, writing, listening, speaking, IELTS prep', type: 'Language' },
+
+      // Others
+      { title: 'edX — Try Before You Buy', url: 'https://www.edx.org/free-online-courses', desc: 'Curated list of completely free edX courses — filter by subject and level', type: 'MOOC' },
+      { title: 'Business Operations Mastery (Free + Paid)', url: 'https://excelsiorblueprint.com/', desc: '26-module training platform — business ops, systems, SOPs, digital tools. Free content + Pro tier', type: 'MOOC' },
+      { title: 'Remote Ops Mastery', url: 'https://remoteopsmastery.com/', desc: '9-module course for Filipino VAs and freelancers — remote work skills, client acquisition, pricing', type: 'PH' },
+      { title: 'LinkedIn Learning (Free with Library Card)', url: 'https://www.linkedin.com/learning-login/go/library', desc: '16,000+ courses free with a participating library card — check your local library', type: 'MOOC' },
     ],
   },
   career: {
