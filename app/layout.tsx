@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 export const metadata: Metadata = {
-  title: 'Career Ops — AI Job Search System',
-  description: 'Evaluate job offers with AI and track your pipeline. By Excelsior Consultancy Services.',
+  title: 'ResuMatch — AI Job Evaluation',
+  description: 'Free AI-powered job evaluation. Paste a job description, get an A–F grade, and track every application.',
 }
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
