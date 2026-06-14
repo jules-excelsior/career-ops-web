@@ -1,10 +1,10 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Logo from '@/app/components/Logo'
 
-export default function InterviewPage() {
+function InterviewContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const jobId = searchParams.get('job_id')
@@ -124,5 +124,13 @@ export default function InterviewPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function InterviewPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)' }}><div style={{ color:'var(--muted)' }}>Loading…</div></div>}>
+      <InterviewContent />
+    </Suspense>
   )
 }
