@@ -14,6 +14,8 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<any>(null)
   const [evaluation, setEvaluation] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [userId, setUserId] = useState<string|null>(null)
+  const [token, setToken] = useState<string|null>(null)
   const [coverLetter, setCoverLetter] = useState('')
   const [showCoverLetter, setShowCoverLetter] = useState(false)
   const [generatingCover, setGeneratingCover] = useState(false)
