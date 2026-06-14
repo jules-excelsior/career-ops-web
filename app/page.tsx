@@ -24,7 +24,7 @@ export default async function HomePage() {
         <h1 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'clamp(2.4rem,5vw,3.4rem)', fontWeight:700, color:'var(--white)', lineHeight:1.2, marginBottom:'18px' }}>
           Know if a job is worth it — before you apply.
         </h1>
-        <p style={{ fontSize:'1.02rem', color:'var(--muted)', maxWidth:'540px', lineHeight:1.75, marginBottom:'32px' }}>
+        <p style={{ fontSize:'1.08rem', color:'#8899bb', maxWidth:'560px', lineHeight:1.75, marginBottom:'36px' }}>
           Paste a job description. ResuMatch compares it against your profile and resume, grades it A–F, and helps you track every application.
         </p>
         <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
@@ -45,7 +45,7 @@ export default async function HomePage() {
             <div key={item.step} style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'12px', padding:'24px' }}>
               <div style={{ fontSize:'0.72rem', fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'var(--accent)', fontFamily:'DM Mono,monospace', marginBottom:'12px' }}>Step {item.step}</div>
               <div style={{ fontWeight:700, color:'var(--white)', fontSize:'0.95rem', marginBottom:'8px' }}>{item.title}</div>
-              <p style={{ fontSize:'0.82rem', color:'var(--muted)', lineHeight:1.65 }}>{item.desc}</p>
+              <p style={{ fontSize:'0.84rem', color:'#8899bb', lineHeight:1.65 }}>{item.desc}</p>
             </div>
           ))}
         </div>
@@ -65,7 +65,7 @@ export default async function HomePage() {
           ].map(f => (
             <div key={f.title} style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'12px', padding:'20px 22px' }}>
               <div style={{ fontWeight:600, color:'var(--white)', fontSize:'0.9rem', marginBottom:'6px' }}>{f.title}</div>
-              <div style={{ fontSize:'0.8rem', color:'var(--muted)', lineHeight:1.6 }}>{f.desc}</div>
+              <div style={{ fontSize:'0.82rem', color:'#8899bb', lineHeight:1.6 }}>{f.desc}</div>
             </div>
           ))}
         </div>
@@ -75,7 +75,7 @@ export default async function HomePage() {
       <section style={{ textAlign:'center', padding:'0 28px 100px' }}>
         <div style={{ maxWidth:'500px', margin:'0 auto', padding:'44px 32px', background:'var(--card)', border:'1px solid var(--border)', borderRadius:'16px' }}>
           <h2 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.5rem', fontWeight:700, color:'var(--white)', marginBottom:'10px' }}>Stop guessing on job offers.</h2>
-          <p style={{ color:'var(--muted)', fontSize:'0.9rem', marginBottom:'24px', lineHeight:1.6 }}>Free forever. No credit card. No ads.</p>
+          <p style={{ color:'#8899bb', fontSize:'0.9rem', marginBottom:'24px', lineHeight:1.6 }}>Free forever. No credit card. No ads.</p>
           <a href="/login" style={{ display:'inline-block', padding:'13px 32px', background:accent, color:'#000', border:'none', borderRadius:'8px', fontSize:'0.92rem', fontWeight:600, textDecoration:'none' }}>Get Started</a>
         </div>
       </section>
