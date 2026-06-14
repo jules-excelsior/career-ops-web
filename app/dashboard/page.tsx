@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [userId, setUserId] = useState<string|null>(null)
   const [token, setToken] = useState<string|null>(null)
   const [dragging, setDragging] = useState<string|null>(null)
+  const [error, setError] = useState('')
   const [view, setView] = useState<'kanban'|'list'>('kanban')
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -29,26 +30,37 @@ export default function DashboardPage() {
     })
   }, [])
   const fetchJobs = useCallback(async (uid: string, tok: string) => {
-    const res = await fetch(`/api/jobs?user_id=${uid}`, { headers: { 'Authorization':`Bearer ${tok}` } })
-    const data = await res.json()
-    setJobs(data.jobs || []); setLoading(false)
-  }, [])
+    try {
+      const res = await fetch(`/api/jobs?user_id=${uid}`, { headers: { 'Authorization':`Bearer ${tok}` } })
+      if (res.status === 401) { router.push('/login'); return }
+      const data = await res.json()
+      if (data.error) { setError(data.error); setLoading(false); return }
+      setJobs(data.jobs || []); setError('')
+    } catch { setError('Failed to load jobs. Check your connection.') }
+    finally { setLoading(false) }
+  }, [router])
   const updateStatus = async (jobId: string, status: string) => {
+    if (!token) return
     const previousJobs = jobs
     setJobs(prev => prev.map(j => j.id===jobId ? {...j, status} : j))
     try {
       const res = await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({ id:jobId, status, user_id:userId }) })
-      if (!res.ok) { setJobs(previousJobs); return }
-    } catch { setJobs(previousJobs) }
+      if (res.status === 401) { router.push('/login'); return }
+      if (!res.ok) { setJobs(previousJobs); setError('Failed to update status'); return }
+      setError('')
+    } catch { setJobs(previousJobs); setError('Connection error') }
   }
   const deleteJob = async (jobId: string) => {
+    if (!token) return
     if (!confirm('Delete this job?')) return
     const previousJobs = jobs
     setJobs(prev => prev.filter(j => j.id!==jobId))
     try {
       const res = await fetch('/api/jobs', { method:'DELETE', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({ id:jobId, user_id:userId }) })
-      if (!res.ok) { setJobs(previousJobs); return }
-    } catch { setJobs(previousJobs) }
+      if (res.status === 401) { router.push('/login'); return }
+      if (!res.ok) { setJobs(previousJobs); setError('Failed to delete'); return }
+      setError('')
+    } catch { setJobs(previousJobs); setError('Connection error') }
   }
   const signOut = async () => { await supabase.auth.signOut(); router.push('/login') }
   const CARD_STYLE: React.CSSProperties = {
@@ -84,6 +96,7 @@ export default function DashboardPage() {
           <h1 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.8rem', fontWeight:700, color:'var(--white)' }}>My Job Pipeline</h1>
           <p style={{ fontSize:'0.82rem', color:'var(--muted)', marginTop:'4px' }}>{jobs.length} total · {byStatus('interview').length} in interview · {byStatus('offer').length} offers</p>
         </div>
+        {error && <div style={{ marginBottom:'16px', padding:'10px 16px', background:'rgba(255,82,82,0.06)', border:'1px solid rgba(255,82,82,0.2)', borderRadius:'8px', color:'var(--danger)', fontSize:'0.82rem' }}>{error}</div>}
         <div style={{ display:'flex', gap:'10px', flexWrap:'wrap', marginBottom:'28px' }}>
           {STATUSES.map(s => <div key={s.key} className="stat-card" style={{ background:s.bg, border:`1px solid ${s.color}33`, borderRadius:'10px', padding:'12px 20px' }}><div style={{ fontSize:'1.4rem', fontWeight:700, color:s.color, fontFamily:'DM Mono,monospace' }}>{byStatus(s.key).length}</div><div style={{ fontSize:'0.72rem', color:'var(--muted)', textTransform:'uppercase', letterSpacing:'1px' }}>{s.label}</div></div>)}
         </div>
@@ -91,7 +104,7 @@ export default function DashboardPage() {
           <div style={{ textAlign:'center', padding:'80px 24px', background:'var(--card)', border:'1px solid var(--border)', borderRadius:'16px' }}>
             <div style={{ fontSize:'3rem', marginBottom:'16px' }}>🎯</div>
             <h2 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.4rem', color:'var(--white)', marginBottom:'8px' }}>No jobs yet</h2>
-            <p style={{ color:'var(--muted)', fontSize:'0.88rem', marginBottom:'24px' }}>Paste a job description and let Claude evaluate it.</p>
+            <p style={{ color:'var(--muted)', fontSize:'0.88rem', marginBottom:'24px' }}>Paste a job description and let AI evaluate it.</p>
             <button onClick={() => router.push('/evaluate')} style={{ padding:'12px 28px', background:'var(--accent)', color:'#000', border:'none', borderRadius:'8px', fontSize:'0.9rem', fontWeight:700 }}>Evaluate Your First Job →</button>
           </div>
         )}
