@@ -130,16 +130,17 @@ export default function DashboardPage() {
                           {grade && <div style={{ width:'30px', height:'30px', borderRadius:'7px', background:`${GRADE_COLORS[grade]}18`, border:`1px solid ${GRADE_COLORS[grade]}44`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontFamily:'DM Mono,monospace', fontWeight:700, fontSize:'0.85rem', color:GRADE_COLORS[grade] }}>{grade}</div>}
                         </div>
                         {score && <div style={{ marginTop:'8px', display:'flex', alignItems:'center', gap:'6px' }}><div style={{ flex:1, height:'3px', background:'rgba(255,255,255,0.06)', borderRadius:'2px', overflow:'hidden' }}><div style={{ height:'100%', width:`${(score/5)*100}%`, background:GRADE_COLORS[grade||'C'], borderRadius:'2px' }} /></div><span style={{ fontSize:'0.65rem', color:'var(--muted)', fontFamily:'DM Mono,monospace' }}>{score}/5</span></div>}
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'8px' }}>
-                          <select value={job.status} onChange={e => updateStatus(job.id, e.target.value)} onClick={e => e.stopPropagation()} style={{ fontSize:'0.7rem', padding:'2px 6px', width:'auto', color:status.color, background:'transparent', border:`1px solid ${status.color}44`, borderRadius:'5px' }}>
-                            {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-                          </select>
-                          <div style={{ display:'flex', gap:'4px', alignItems:'center' }}>
-                            {job.job_url && job.status === 'saved' && (
-                              <a href={job.job_url} target="_blank" rel="noopener noreferrer" onClick={e => { e.stopPropagation(); updateStatus(job.id, 'applied') }} title="Apply now — opens job posting and marks as applied" style={{ fontSize:'0.65rem', padding:'3px 8px', background:'rgba(0,194,255,0.12)', border:'1px solid rgba(0,194,255,0.25)', borderRadius:'5px', color:'var(--accent)', fontWeight:600, textDecoration:'none', whiteSpace:'nowrap' }}>Apply →</a>
-                            )}
-                            <button onClick={(e) => { e.stopPropagation(); deleteJob(job.id) }} style={{ background:'none', border:'none', color:'rgba(255,82,82,0.5)', fontSize:'0.75rem', padding:'2px 4px', cursor:'pointer' }}>🗑</button>
-                          </div>
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'8px', gap:'4px' }}>
+                          {job.status === 'saved' && job.job_url ? (
+                            <a href={job.job_url} target="_blank" rel="noopener noreferrer" onClick={e => { e.stopPropagation(); updateStatus(job.id, 'applied') }} style={{ fontSize:'0.68rem', padding:'4px 10px', background:'rgba(0,194,255,0.12)', border:'1px solid rgba(0,194,255,0.3)', borderRadius:'5px', color:'var(--accent)', fontWeight:600, textDecoration:'none', whiteSpace:'nowrap' }}>Apply →</a>
+                          ) : job.status === 'applied' ? (
+                            <button onClick={e => { e.stopPropagation(); updateStatus(job.id, 'interview') }} style={{ fontSize:'0.68rem', padding:'4px 10px', background:'rgba(201,168,76,0.1)', border:'1px solid rgba(201,168,76,0.25)', borderRadius:'5px', color:'var(--gold)', fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', fontFamily:'inherit' }}>Interviewed ✓</button>
+                          ) : job.status === 'interview' ? (
+                            <button onClick={e => { e.stopPropagation(); updateStatus(job.id, 'offer') }} style={{ fontSize:'0.68rem', padding:'4px 10px', background:'rgba(34,211,168,0.1)', border:'1px solid rgba(34,211,168,0.25)', borderRadius:'5px', color:'var(--success)', fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', fontFamily:'inherit' }}>Got Offer ✓</button>
+                          ) : job.status === 'offer' ? (
+                            <button onClick={e => { e.stopPropagation(); updateStatus(job.id, 'rejected') }} style={{ fontSize:'0.68rem', padding:'4px 10px', background:'rgba(255,82,82,0.08)', border:'1px solid rgba(255,82,82,0.2)', borderRadius:'5px', color:'var(--danger)', fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', fontFamily:'inherit' }}>Decline ✗</button>
+                          ) : null}
+                          <button onClick={(e) => { e.stopPropagation(); deleteJob(job.id) }} style={{ background:'none', border:'none', color:'rgba(255,82,82,0.4)', fontSize:'0.7rem', padding:'2px 4px', cursor:'pointer' }}>🗑</button>
                         </div>
                       </div>
                     )
@@ -161,10 +162,14 @@ export default function DashboardPage() {
                     <div style={{ fontWeight:600, color:'var(--white)', fontSize:'0.9rem' }}>{job.role||'Unknown Role'}</div>
                     <div style={{ fontSize:'0.78rem', color:'var(--muted)', marginTop:'2px' }}>{job.company}{job.location?` · ${job.location}`:''}{job.salary_range?` · ${job.salary_range}`:''}</div>
                   </div>
-                  <div style={{ display:'flex', alignItems:'center', gap:'10px', flexShrink:0 }}>
-                    {job.job_url && job.status === 'saved' && (
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
+                    {job.status === 'saved' && job.job_url ? (
                       <a href={job.job_url} target="_blank" rel="noopener noreferrer" onClick={e => { e.stopPropagation(); updateStatus(job.id, 'applied') }} style={{ fontSize:'0.72rem', padding:'5px 12px', background:'rgba(0,194,255,0.12)', border:'1px solid rgba(0,194,255,0.25)', borderRadius:'6px', color:'var(--accent)', fontWeight:600, textDecoration:'none', whiteSpace:'nowrap' }}>Apply →</a>
-                    )}
+                    ) : job.status === 'applied' ? (
+                      <button onClick={e => { e.stopPropagation(); updateStatus(job.id, 'interview') }} style={{ fontSize:'0.72rem', padding:'5px 12px', background:'rgba(201,168,76,0.1)', border:'1px solid rgba(201,168,76,0.25)', borderRadius:'6px', color:'var(--gold)', fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', fontFamily:'inherit' }}>Interviewed ✓</button>
+                    ) : job.status === 'interview' ? (
+                      <button onClick={e => { e.stopPropagation(); updateStatus(job.id, 'offer') }} style={{ fontSize:'0.72rem', padding:'5px 12px', background:'rgba(34,211,168,0.1)', border:'1px solid rgba(34,211,168,0.25)', borderRadius:'6px', color:'var(--success)', fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', fontFamily:'inherit' }}>Got Offer ✓</button>
+                    ) : null}
                     {score && <span style={{ fontFamily:'DM Mono,monospace', fontSize:'0.8rem', color:'var(--muted)' }}>{score}/5</span>}
                     <select value={job.status} onChange={e => updateStatus(job.id, e.target.value)} style={{ fontSize:'0.76rem', padding:'4px 10px', width:'auto', color:statusInfo?.color, background:statusInfo?.bg, border:`1px solid ${statusInfo?.color}44`, borderRadius:'6px' }}>
                       {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}

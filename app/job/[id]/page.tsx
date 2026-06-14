@@ -108,25 +108,33 @@ export default function JobDetailPage() {
           </div>
         )}
 
-        {/* Apply button */}
-        {job.job_url && job.status !== 'rejected' && (
-          <div style={{ marginTop:'16px', marginBottom:'8px' }}>
-            <a
-              href={job.job_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={async (e) => {
-                if (job.status !== 'applied' && job.status !== 'interview' && job.status !== 'offer') {
-                  e.preventDefault()
-                  await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify({ id:job.id, status:'applied', user_id:userId }) })
-                  window.open(job.job_url, '_blank')
-                }
-              }}
-              style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'12px 24px', background:'rgba(0,194,255,0.12)', border:'1px solid rgba(0,194,255,0.3)', borderRadius:'10px', color:'var(--accent)', fontSize:'0.9rem', fontWeight:700, textDecoration:'none' }}
-            >
-              {job.status === 'saved' ? '🚀 Apply Now — Mark as Applied' : job.status === 'applied' ? '🔗 View Job Posting' : job.status === 'interview' ? '🔗 View Job Posting' : '🔗 View Job Posting'}
-            </a>
-            {job.status === 'saved' && <span style={{ display:'block', marginTop:'6px', fontSize:'0.72rem', color:'var(--muted)' }}>Clicking this opens the job posting and automatically marks it as Applied</span>}
+        {/* Status quick actions */}
+        {job.status !== 'rejected' && (
+          <div style={{ marginTop:'16px', marginBottom:'8px', display:'flex', gap:'10px', flexWrap:'wrap', alignItems:'center' }}>
+            {job.status === 'saved' && (
+              <>
+                {job.job_url && (
+                  <a href={job.job_url} target="_blank" rel="noopener noreferrer" onClick={async () => { await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify({ id:job.id, status:'applied', user_id:userId }) }); window.location.reload() }} style={{ padding:'11px 22px', background:'rgba(0,194,255,0.12)', border:'1px solid rgba(0,194,255,0.3)', borderRadius:'10px', color:'var(--accent)', fontSize:'0.88rem', fontWeight:700, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:'6px' }}>
+                  🚀 Apply Now — Opens Job & Marks as Applied
+                </a>
+                )}
+              </>
+            )}
+            {job.status === 'applied' && (
+              <button onClick={async () => { await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify({ id:job.id, status:'interview', user_id:userId }) }); window.location.reload() }} style={{ padding:'11px 22px', background:'rgba(201,168,76,0.1)', border:'1px solid rgba(201,168,76,0.25)', borderRadius:'10px', color:'var(--gold)', fontSize:'0.88rem', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                ✅ Mark as Interviewed
+              </button>
+            )}
+            {job.status === 'interview' && (
+              <button onClick={async () => { await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify({ id:job.id, status:'offer', user_id:userId }) }); window.location.reload() }} style={{ padding:'11px 22px', background:'rgba(34,211,168,0.1)', border:'1px solid rgba(34,211,168,0.25)', borderRadius:'10px', color:'var(--success)', fontSize:'0.88rem', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                🎉 Mark as Got Offer
+              </button>
+            )}
+            {job.status === 'offer' && (
+              <button onClick={async () => { await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify({ id:job.id, status:'rejected', user_id:userId }) }); window.location.reload() }} style={{ padding:'11px 22px', background:'rgba(255,82,82,0.08)', border:'1px solid rgba(255,82,82,0.2)', borderRadius:'10px', color:'var(--danger)', fontSize:'0.88rem', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                ✗ Decline / Reject
+              </button>
+            )}
           </div>
         )}
 
