@@ -1,23 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-async function getSessionUser() {
-  const supabaseServer = await createServerClient()
-  const { data: { user } } = await supabaseServer.auth.getUser()
-  return user
+async function getSessionUser(req: NextRequest) {
+  const authHeader = req.headers.get('authorization')
+  if (!authHeader?.startsWith('Bearer ')) return null
+  const token = authHeader.slice(7)
+  const { data: { user } } = await supabase.auth.getUser(token)
+  return user || null
 }
 
 const ALLOWED_UPDATE_FIELDS = new Set(['status', 'notes', 'salary_range', 'location', 'applied_at'])
 
 export async function POST(req: NextRequest) {
   try {
-    const sessionUser = await getSessionUser()
+    const sessionUser = await getSessionUser(req)
     if (!sessionUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const sessionUser = await getSessionUser()
+    const sessionUser = await getSessionUser(req)
     if (!sessionUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { searchParams } = new URL(req.url)
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const sessionUser = await getSessionUser()
+    const sessionUser = await getSessionUser(req)
     if (!sessionUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { id, user_id, ...updates } = await req.json()
@@ -83,7 +84,7 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const sessionUser = await getSessionUser()
+    const sessionUser = await getSessionUser(req)
     if (!sessionUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { id, user_id } = await req.json()

@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+async function getSessionUser(req: NextRequest) {
+  const authHeader = req.headers.get('authorization')
+  if (!authHeader?.startsWith('Bearer ')) return null
+  const token = authHeader.slice(7)
+  const { data: { user } } = await supabase.auth.getUser(token)
+  return user || null
+}
 
 const PROMPT_INJECTION_PATTERNS = [
   /ignore\s+(previous|prior|all)\s+instructions?/i,
@@ -29,8 +36,7 @@ function sanitizeJdText(text: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabaseServer = await createServerClient()
-    const { data: { user } } = await supabaseServer.auth.getUser()
+    const user = await getSessionUser(req)
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { jd_text, job_id, user_id } = await req.json()

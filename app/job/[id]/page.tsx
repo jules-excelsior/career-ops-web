@@ -14,17 +14,19 @@ export default function JobDetailPage() {
   const [evaluation, setEvaluation] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string|null>(null)
+  const [token, setToken] = useState<string|null>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) { router.push('/login'); return }
-      setUserId(data.user.id)
-      fetchJob(data.user.id)
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) { router.push('/login'); return }
+      setUserId(data.session.user.id)
+      setToken(data.session.access_token)
+      fetchJob(data.session.user.id, data.session.access_token)
     })
   }, [])
 
-  const fetchJob = async (uid: string) => {
-    const res = await fetch(`/api/job/${params.id}?user_id=${uid}`)
+  const fetchJob = async (uid: string, tok: string) => {
+    const res = await fetch(`/api/job/${params.id}?user_id=${uid}`, { headers: { 'Authorization':`Bearer ${tok}` } })
     const data = await res.json()
     setJob(data.job)
     setEvaluation(data.evaluation)
@@ -99,7 +101,7 @@ export default function JobDetailPage() {
         <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'14px', padding:'20px 24px', marginTop:'20px' }}>
           <div style={{ fontSize:'0.72rem', fontWeight:700, letterSpacing:'1.5px', textTransform:'uppercase', color:'var(--muted)', fontFamily:'DM Mono,monospace', marginBottom:'10px' }}>Pipeline Status</div>
           <select defaultValue={job.status} onChange={async e => {
-            await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id:job.id, status:e.target.value, user_id:userId }) })
+            await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({ id:job.id, status:e.target.value, user_id:userId }) })
           }} style={{ width:'auto', fontSize:'0.88rem' }}>
             {['saved','applied','interview','offer','rejected'].map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
           </select>

@@ -12,21 +12,24 @@ export default function EvaluatePage() {
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState('')
   const [userId, setUserId] = useState<string|null>(null)
+  const [token, setToken] = useState<string|null>(null)
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) { router.push('/login'); return }
-      setUserId(data.user.id)
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) { router.push('/login'); return }
+      setUserId(data.session.user.id)
+      setToken(data.session.access_token)
     })
   }, [])
   const handleEvaluate = async () => {
     if (!jdText.trim() || jdText.length < 50) { setError('Please paste a complete job description (at least 50 characters).'); return }
-    if (!userId) { setError('Not logged in. Please refresh.'); return }
+    if (!userId || !token) { setError('Not logged in. Please refresh.'); return }
     setLoading(true); setError(''); setResult(null)
     try {
-      const jobRes = await fetch('/api/jobs', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ company:'Evaluating…', role:'Evaluating…', jd_text:jdText, status:'saved', user_id:userId }) })
+      const headers = { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` }
+      const jobRes = await fetch('/api/jobs', { method:'POST', headers, body: JSON.stringify({ company:'Evaluating…', role:'Evaluating…', jd_text:jdText, status:'saved', user_id:userId }) })
       const jobData = await jobRes.json()
       if (!jobData.job) { setError(jobData.error || 'Failed to create job record.'); setLoading(false); return }
-      const evalRes = await fetch('/api/evaluate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ jd_text:jdText, job_id:jobData.job.id, user_id:userId }) })
+      const evalRes = await fetch('/api/evaluate', { method:'POST', headers, body: JSON.stringify({ jd_text:jdText, job_id:jobData.job.id, user_id:userId }) })
       const evalData = await evalRes.json()
       if (evalData.error) { setError(evalData.error); setLoading(false); return }
       setResult({ ...evalData.parsed, job_id:jobData.job.id })

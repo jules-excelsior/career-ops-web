@@ -16,28 +16,30 @@ export default function DashboardPage() {
   const [jobs, setJobs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string|null>(null)
+  const [token, setToken] = useState<string|null>(null)
   const [dragging, setDragging] = useState<string|null>(null)
   const [view, setView] = useState<'kanban'|'list'>('kanban')
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) { router.push('/login'); return }
-      setUserId(data.user.id)
-      fetchJobs(data.user.id)
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) { router.push('/login'); return }
+      setUserId(data.session.user.id)
+      setToken(data.session.access_token)
+      fetchJobs(data.session.user.id, data.session.access_token)
     })
   }, [])
-  const fetchJobs = useCallback(async (uid: string) => {
-    const res = await fetch(`/api/jobs?user_id=${uid}`)
+  const fetchJobs = useCallback(async (uid: string, tok: string) => {
+    const res = await fetch(`/api/jobs?user_id=${uid}`, { headers: { 'Authorization':`Bearer ${tok}` } })
     const data = await res.json()
     setJobs(data.jobs || []); setLoading(false)
   }, [])
   const updateStatus = async (jobId: string, status: string) => {
     setJobs(prev => prev.map(j => j.id===jobId ? {...j, status} : j))
-    await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id:jobId, status, user_id:userId }) })
+    await fetch('/api/jobs', { method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({ id:jobId, status, user_id:userId }) })
   }
   const deleteJob = async (jobId: string) => {
     if (!confirm('Delete this job?')) return
     setJobs(prev => prev.filter(j => j.id!==jobId))
-    await fetch('/api/jobs', { method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id:jobId, user_id:userId }) })
+    await fetch('/api/jobs', { method:'DELETE', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({ id:jobId, user_id:userId }) })
   }
   const signOut = async () => { await supabase.auth.signOut(); router.push('/login') }
   const byStatus = (s: string) => jobs.filter(j => j.status===s)
