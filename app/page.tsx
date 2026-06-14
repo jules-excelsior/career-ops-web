@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Logo from '@/app/components/Logo'
+import ScrollReveal from '@/app/components/ScrollReveal'
 
 export default async function HomePage() {
   const supabase = createClient()
@@ -36,7 +37,8 @@ export default async function HomePage() {
       {/* How it works */}
       <section style={{ maxWidth:'860px', margin:'0 auto', padding:'0 28px 90px' }}>
         <h2 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.6rem', fontWeight:700, color:'var(--white)', marginBottom:'32px' }}>How it works</h2>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:'16px' }}>
+        <ScrollReveal>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:'16px' }}>
           {[
             { step:'1', title:'Build your profile', desc:'Add your skills, experience, and paste your resume. This is what the AI uses to evaluate each job against your background.' },
             { step:'2', title:'Paste a job description', desc:'Drop in any job posting. The AI analyzes it across role fit, compensation, culture signals, and red flags.' },
@@ -48,13 +50,15 @@ export default async function HomePage() {
               <p style={{ fontSize:'0.84rem', color:'#8899bb', lineHeight:1.65 }}>{item.desc}</p>
             </div>
           ))}
-        </div>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* What you get */}
       <section style={{ maxWidth:'860px', margin:'0 auto', padding:'0 28px 90px' }}>
         <h2 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.6rem', fontWeight:700, color:'var(--white)', marginBottom:'28px' }}>What you get</h2>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(360px, 1fr))', gap:'12px' }}>
+        <ScrollReveal>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(360px, 1fr))', gap:'12px' }}>
           {[
             { title:'AI-Powered Grading', desc:'Every job gets an A–F grade based on how well it matches your profile and resume.' },
             { title:'6-Dimension Analysis', desc:'Role summary, CV match, green flags, red flags, compensation analysis, and a recommendation.' },
@@ -68,7 +72,8 @@ export default async function HomePage() {
               <div style={{ fontSize:'0.82rem', color:'#8899bb', lineHeight:1.6 }}>{f.desc}</div>
             </div>
           ))}
-        </div>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* CTA */}
