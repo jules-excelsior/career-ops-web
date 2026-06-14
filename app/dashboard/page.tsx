@@ -73,10 +73,10 @@ export default function DashboardPage() {
           <div style={{ display:'flex', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px', overflow:'hidden' }}>
             {(['kanban','list'] as const).map(v => <button key={v} onClick={() => setView(v)} style={{ padding:'6px 14px', background:view===v?'rgba(0,194,255,0.15)':'transparent', border:'none', color:view===v?'var(--accent)':'var(--muted)', fontSize:'0.78rem' }}>{v==='kanban'?'⬛ Board':'☰ List'}</button>)}
           </div>
-          <button onClick={() => router.push('/calendar')} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'var(--muted)', borderRadius:'8px', fontSize:'0.82rem' }}>Calendar</button>
-          <button onClick={() => router.push('/profile')} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'var(--muted)', borderRadius:'8px', fontSize:'0.82rem' }}>Profile</button>
+          <button onClick={() => router.push('/calendar')} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'#8899bb', borderRadius:'8px', fontSize:'0.84rem', fontWeight:500 }}>Calendar</button>
+          <button onClick={() => router.push('/profile')} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'#8899bb', borderRadius:'8px', fontSize:'0.84rem', fontWeight:500 }}>Profile</button>
           <button onClick={() => router.push('/evaluate')} style={{ padding:'8px 18px', background:'var(--accent)', color:'#000', border:'none', borderRadius:'8px', fontSize:'0.85rem', fontWeight:700 }}>+ Evaluate Job</button>
-          <button onClick={signOut} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'var(--muted)', borderRadius:'8px', fontSize:'0.82rem' }}>Sign Out</button>
+          <button onClick={signOut} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'#8899bb', borderRadius:'8px', fontSize:'0.84rem', fontWeight:500 }}>Sign Out</button>
         </div>
       </nav>
       <main style={{ paddingTop:'72px', maxWidth:'1400px', margin:'0 auto', padding:'72px 24px 48px' }}>

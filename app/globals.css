@@ -1,7 +1,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg: #080c18; --card: #0d1526; --border: #1a2744;
-  --white: #f0f4ff; --text: #c8d4e8; --muted: #4a5a7a;
+  --white: #f0f4ff; --text: #c8d4e8; --muted: #7a8aa8;
   --accent: #00C2FF; --gold: #C9A84C; --danger: #ff5252; --success: #22D3A8;
 }
 body { background: var(--bg); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
