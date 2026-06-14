@@ -1,7 +1,5 @@
--- Run this in Supabase SQL Editor
--- Creates all tables from scratch if they don't exist
+-- Supabase SQL Editor — run entire script
 
--- 1. career_jobs — main jobs table
 CREATE TABLE IF NOT EXISTS career_jobs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID NOT NULL,
@@ -20,10 +18,9 @@ CREATE TABLE IF NOT EXISTS career_jobs (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 2. career_evaluations — AI evaluation results
 CREATE TABLE IF NOT EXISTS career_evaluations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  job_id UUID REFERENCES career_jobs(id) ON DELETE CASCADE,
+  job_id UUID,
   user_id UUID NOT NULL,
   grade TEXT,
   score NUMERIC(3,1),
@@ -37,10 +34,9 @@ CREATE TABLE IF NOT EXISTS career_evaluations (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 3. career_profiles — user profile + resume
 CREATE TABLE IF NOT EXISTS career_profiles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID NOT NULL UNIQUE,
+  user_id UUID NOT NULL,
   name TEXT,
   target_role TEXT,
   industry TEXT,
@@ -53,14 +49,21 @@ CREATE TABLE IF NOT EXISTS career_profiles (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 4. Enable RLS on all tables
 ALTER TABLE career_jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE career_evaluations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE career_profiles ENABLE ROW LEVEL SECURITY;
 
--- 5. RLS policies
+DROP POLICY IF EXISTS "Users manage own jobs" ON career_jobs;
 CREATE POLICY "Users manage own jobs" ON career_jobs FOR ALL USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users manage own evaluations" ON career_evaluations;
 CREATE POLICY "Users manage own evaluations" ON career_evaluations FOR ALL USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users view own profile" ON career_profiles;
 CREATE POLICY "Users view own profile" ON career_profiles FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users insert own profile" ON career_profiles;
 CREATE POLICY "Users insert own profile" ON career_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users update own profile" ON career_profiles;
 CREATE POLICY "Users update own profile" ON career_profiles FOR UPDATE USING (auth.uid() = user_id);
