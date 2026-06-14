@@ -14,8 +14,13 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<any>(null)
   const [evaluation, setEvaluation] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState<string|null>(null)
-  const [token, setToken] = useState<string|null>(null)
+  const [coverLetter, setCoverLetter] = useState('')
+  const [showCoverLetter, setShowCoverLetter] = useState(false)
+  const [generatingCover, setGeneratingCover] = useState(false)
+  const [skillsGap, setSkillsGap] = useState<any>(null)
+  const [showSkillsGap, setShowSkillsGap] = useState(false)
+  const [generatingSkills, setGeneratingSkills] = useState(false)
+  const [actionError, setActionError] = useState('')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -98,6 +103,92 @@ export default function JobDetailPage() {
           <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'16px', padding:'32px', textAlign:'center', color:'var(--muted)' }}>
             <p>No evaluation found for this job.</p>
             <button onClick={() => router.push('/evaluate')} style={{ marginTop:'16px', padding:'10px 24px', background:'var(--accent)', color:'#000', border:'none', borderRadius:'8px', fontWeight:700 }}>Evaluate Now →</button>
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div style={{ display:'flex', gap:'10px', flexWrap:'wrap', marginTop:'20px' }}>
+          <button onClick={async () => {
+            setGeneratingCover(true); setActionError('')
+            try {
+              const res = await fetch('/api/cover-letter', { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify({ job_id:job.id, user_id:userId }) })
+              const d = await res.json()
+              if (d.error) { setActionError(d.error); return }
+              setCoverLetter(d.letter); setShowCoverLetter(true)
+            } catch { setActionError('Failed') }
+            finally { setGeneratingCover(false) }
+          }} disabled={generatingCover} style={{ padding:'10px 20px', background:'rgba(201,168,76,0.1)', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'8px', color:'var(--gold)', fontSize:'0.82rem', fontWeight:600, cursor:generatingCover?'wait':'pointer' }}>
+            {generatingCover ? 'Generating…' : '📝 Cover Letter'}
+          </button>
+          <button onClick={async () => {
+            setGeneratingSkills(true); setActionError('')
+            try {
+              const res = await fetch('/api/skills-gap', { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify({ job_id:job.id, user_id:userId }) })
+              const d = await res.json()
+              if (d.error) { setActionError(d.error); return }
+              setSkillsGap(d); setShowSkillsGap(true)
+            } catch { setActionError('Failed') }
+            finally { setGeneratingSkills(false) }
+          }} disabled={generatingSkills} style={{ padding:'10px 20px', background:'rgba(0,194,255,0.08)', border:'1px solid rgba(0,194,255,0.25)', borderRadius:'8px', color:'var(--accent)', fontSize:'0.82rem', fontWeight:600, cursor:generatingSkills?'wait':'pointer' }}>
+            {generatingSkills ? 'Analyzing…' : '🎯 Skills Gap'}
+          </button>
+          <a href={`/interview?job_id=${job.id}`} style={{ padding:'10px 20px', background:'rgba(34,211,168,0.08)', border:'1px solid rgba(34,211,168,0.25)', borderRadius:'8px', color:'var(--success)', fontSize:'0.82rem', fontWeight:600, textDecoration:'none', display:'inline-block' }}>
+            🎤 Interview Simulator
+          </a>
+        </div>
+
+        {actionError && <div style={{ marginTop:'10px', padding:'10px 14px', background:'rgba(255,82,82,0.08)', border:'1px solid rgba(255,82,82,0.25)', borderRadius:'8px', color:'var(--danger)', fontSize:'0.82rem' }}>{actionError}</div>}
+
+        {/* Cover letter result */}
+        {showCoverLetter && (
+          <div style={{ marginTop:'16px', background:'var(--card)', border:'1px solid var(--border)', borderRadius:'14px', padding:'24px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}>
+              <div style={{ fontSize:'0.72rem', fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'var(--gold)', fontFamily:'DM Mono,monospace' }}>Cover Letter</div>
+              <button onClick={() => setShowCoverLetter(false)} style={{ background:'none', border:'none', color:'var(--muted)', fontSize:'1.2rem', cursor:'pointer' }}>×</button>
+            </div>
+            <div style={{ fontSize:'0.85rem', color:'var(--text)', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{coverLetter}</div>
+            <button onClick={() => { navigator.clipboard.writeText(coverLetter) }} style={{ marginTop:'12px', padding:'8px 18px', background:'rgba(201,168,76,0.1)', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'6px', color:'var(--gold)', fontSize:'0.78rem', cursor:'pointer' }}>📋 Copy to Clipboard</button>
+          </div>
+        )}
+
+        {/* Skills gap result */}
+        {showSkillsGap && skillsGap && (
+          <div style={{ marginTop:'16px', background:'var(--card)', border:'1px solid var(--border)', borderRadius:'14px', padding:'24px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
+              <div style={{ fontSize:'0.72rem', fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'var(--accent)', fontFamily:'DM Mono,monospace' }}>Skills Gap Analysis</div>
+              <button onClick={() => setShowSkillsGap(false)} style={{ background:'none', border:'none', color:'var(--muted)', fontSize:'1.2rem', cursor:'pointer' }}>×</button>
+            </div>
+            {skillsGap.match_percent && (
+              <div style={{ marginBottom:'16px' }}>
+                <div style={{ fontSize:'1.4rem', fontWeight:700, color:'var(--gold)', fontFamily:'DM Mono,monospace' }}>{skillsGap.match_percent}% Match</div>
+                <div style={{ maxWidth:'200px', height:'4px', background:'rgba(255,255,255,0.06)', borderRadius:'2px', marginTop:'6px' }}>
+                  <div style={{ height:'100%', width:`${skillsGap.match_percent}%`, background:'var(--gold)', borderRadius:'2px' }} />
+                </div>
+              </div>
+            )}
+            {skillsGap.matching_skills?.length > 0 && (
+              <div style={{ marginBottom:'12px' }}>
+                <div style={{ fontSize:'0.72rem', fontWeight:700, color:'var(--success)', marginBottom:'6px' }}>✅ Matching Skills</div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
+                  {skillsGap.matching_skills.map((s:string)=><span key={s} style={{ padding:'4px 12px', background:'rgba(34,211,168,0.08)', border:'1px solid rgba(34,211,168,0.2)', borderRadius:'100px', fontSize:'0.76rem', color:'var(--success)' }}>{s}</span>)}
+                </div>
+              </div>
+            )}
+            {skillsGap.missing_skills?.length > 0 && (
+              <div style={{ marginBottom:'12px' }}>
+                <div style={{ fontSize:'0.72rem', fontWeight:700, color:'var(--danger)', marginBottom:'6px' }}>❌ Missing Skills</div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
+                  {skillsGap.missing_skills.map((s:string)=><span key={s} style={{ padding:'4px 12px', background:'rgba(255,82,82,0.08)', border:'1px solid rgba(255,82,82,0.2)', borderRadius:'100px', fontSize:'0.76rem', color:'var(--danger)' }}>{s}</span>)}
+                </div>
+              </div>
+            )}
+            {skillsGap.recommendation && <p style={{ fontSize:'0.85rem', color:'var(--muted)', lineHeight:1.7, marginBottom:'12px' }}>{skillsGap.recommendation}</p>}
+            {skillsGap.learning_resources?.length > 0 && (
+              <div>
+                <div style={{ fontSize:'0.72rem', fontWeight:700, color:'var(--gold)', marginBottom:'6px' }}>📚 Learning Resources</div>
+                {skillsGap.learning_resources.map((r:string)=><div key={r} style={{ fontSize:'0.82rem', color:'var(--muted)', padding:'3px 0' }}>• {r}</div>)}
+              </div>
+            )}
           </div>
         )}
 

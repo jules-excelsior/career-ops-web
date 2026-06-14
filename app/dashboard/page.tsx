@@ -73,6 +73,7 @@ export default function DashboardPage() {
           <div style={{ display:'flex', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px', overflow:'hidden' }}>
             {(['kanban','list'] as const).map(v => <button key={v} onClick={() => setView(v)} style={{ padding:'6px 14px', background:view===v?'rgba(0,194,255,0.15)':'transparent', border:'none', color:view===v?'var(--accent)':'var(--muted)', fontSize:'0.78rem' }}>{v==='kanban'?'⬛ Board':'☰ List'}</button>)}
           </div>
+          <button onClick={() => router.push('/calendar')} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'var(--muted)', borderRadius:'8px', fontSize:'0.82rem' }}>Calendar</button>
           <button onClick={() => router.push('/profile')} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'var(--muted)', borderRadius:'8px', fontSize:'0.82rem' }}>Profile</button>
           <button onClick={() => router.push('/evaluate')} style={{ padding:'8px 18px', background:'var(--accent)', color:'#000', border:'none', borderRadius:'8px', fontSize:'0.85rem', fontWeight:700 }}>+ Evaluate Job</button>
           <button onClick={signOut} style={{ padding:'6px 14px', background:'transparent', border:'1px solid var(--border)', color:'var(--muted)', borderRadius:'8px', fontSize:'0.82rem' }}>Sign Out</button>
@@ -154,6 +155,16 @@ export default function DashboardPage() {
             })}
           </div>
         )}
+        <footer style={{ marginTop:'48px', padding:'24px 0', borderTop:'1px solid var(--border)', textAlign:'center' }}>
+          <p style={{ fontSize:'0.7rem', color:'var(--muted)', lineHeight:1.7, maxWidth:'600px', margin:'0 auto' }}>
+            ResuMatch complies with the <strong>Data Privacy Act of 2012 (RA 10173)</strong>. Your profile, resume, and job data are stored securely and never shared with third parties. We do not sell or distribute your personal information. For questions, contact <span style={{ color:'var(--gold)' }}>excelsiorconsultancys@gmail.com</span>.
+          </p>
+          <div style={{ display:'flex', justifyContent:'center', gap:'16px', marginTop:'10px', fontSize:'0.7rem', color:'var(--muted)' }}>
+            <a href="/resources" style={{ color:'var(--muted)', textDecoration:'none' }}>Resources</a>
+            <span>·</span>
+            <span>ResuMatch &copy; {new Date().getFullYear()}</span>
+          </div>
+        </footer>
       </main>
     </div>
   )
